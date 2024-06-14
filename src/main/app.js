@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import requestID from "express-request-id";
 import exceptionHandling from "./api/middleware/exceptionHandler.js";
-import container from "./config/Container.js";
+import container from "./config/container.js";
 
 async function createApp() {
   const app = express();
@@ -19,8 +19,10 @@ async function createApp() {
 
   // Routes
   const userController = container.resolve("userController");
+  const surveyController = container.resolve("surveyController");
 
   app.use("/api/v1/users", userController.router);
+  app.use("/api/v1/survey", surveyController.router);
 
   // Global Error Handler
   app.use(exceptionHandling);
