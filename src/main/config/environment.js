@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+export const profile = process.env.PROFILE;
+
 export const devDBConfig = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -16,4 +18,9 @@ export const jwtConfig = {
 
 export const passwordConfig = {
   saltRounds: 12,
+};
+
+export const openaiConfig = {
+  openai_url: process.env.VITE_OPENAI_API_URL, 
+  openai_key: process.env.VITE_OPENAI_API_KEY,
 };
