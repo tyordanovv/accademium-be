@@ -49,13 +49,7 @@ class UserService {
     }
 
     async verifyUser(username, code) {
-        // const params = {
-        //     UserPoolId: this.cognitoConfig.userPoolId,
-        //     Username: username,
-        //     ConfirmationCode: code,
-        // };
-
-        // await this.cognito.confirmSignUp(params);
+        await this.cognitoService.confirmSignUp(username, code);
     }
 
     async getUserProfile(username) {

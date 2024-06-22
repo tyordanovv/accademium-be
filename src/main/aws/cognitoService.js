@@ -1,11 +1,8 @@
 import Cognito from "./cognitoClient.js";
 import { awsConfig } from '../config/environment.js'
 import {
-    AdminCreateUserCommand,
-    AdminSetUserPasswordCommand,
     AdminAddUserToGroupCommand,
-    AdminGetUserCommand,
-    AdminDeleteUserCommand,
+    ConfirmSignUpCommand,
     SignUpCommand,
     InitiateAuthCommand
 } from "@aws-sdk/client-cognito-identity-provider";
@@ -58,10 +55,16 @@ class CognitoService {
         return authResponse.AuthenticationResult;
     }
 
-    confirmSignUp(params) {
-        //TODO create params here
-        Cognito.confirmSignUp(params).promise();
-        return
+    async confirmSignUp(username, code) {
+        const params = {
+            ClientId: awsConfig.clientId, 
+            Username: username,
+            ConfirmationCode: code,
+        };
+
+        const command = new ConfirmSignUpCommand(params);
+
+        return await Cognito.send(command);
     }
 
     adminGetUser(params) {

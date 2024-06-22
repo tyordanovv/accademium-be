@@ -9,23 +9,11 @@ class UserController {
         this.router = express.Router();
         this.userService = userService;
       
-        this.router.get(
-            "/test",
-            asyncHandler(this.test.bind(this))
-        );
-        this.router.post(
-            "/register",
-            validateSchema(StudentRegistrationRequest),
-            asyncHandler(this.registerStudent.bind(this))
-        );
-        this.router.post(
-            "/login",
-            asyncHandler(this.login.bind(this))
-        );
-        // this.router.post(
-        //     "/verify",
-        //     asyncHandler(this.verify.bind(this))
-        // );
+        this.router
+                .get("/test", asyncHandler(this.test.bind(this)))
+                .post("/register", validateSchema(StudentRegistrationRequest), asyncHandler(this.registerStudent.bind(this)))
+                .post("/login", validateSchema(LoginRequest), asyncHandler(this.login.bind(this)))
+                .post("/verify", validateSchema(ValidationRequest),asyncHandler(this.verify.bind(this)));
         // this.router.post(
         //     "/createB2BAdmin",
         //     authMiddleware.verifyToken,
@@ -67,11 +55,11 @@ class UserController {
         res.status(StatusCodes.OK).json({ token });
     }
 
-    // async verify(req, res) {
-    //     const { email, code } = req.body;
-    //     await this.userService.verifyUser(email, code);
-    //     res.status(StatusCodes.OK).send("User verified successfully.");
-    // }
+    async verify(req, res) {
+        const { email, code } = req.body;
+        await this.userService.verifyUser(email, code);
+        res.status(StatusCodes.OK).send("User verified successfully.");
+    }
 
     // async createB2BAdmin(req, res) {
     //     const { email, organisationId } = req.body;
@@ -98,14 +86,19 @@ class UserController {
     // }
 }
 export default UserController;
+  
+const StudentRegistrationRequest = Joi.object({
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+    organisationId: Joi.string().required(),
+});
 
 const LoginRequest = Joi.object({
     email: Joi.string().required(),
     password: Joi.string().required(),
-  });
-  
-  const StudentRegistrationRequest = Joi.object({
+});
+
+const ValidationRequest = Joi.object({
     email: Joi.string().required(),
-    password: Joi.string().required(),
-    organisationId: Joi.string().required(),
-  });
+    code: Joi.string().required(),
+});
