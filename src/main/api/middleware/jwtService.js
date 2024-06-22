@@ -7,6 +7,7 @@ class JwtService {
     }
 
     verify(token) {
+        console.log("token in verify func", token)
         return jwt.verify(token, jwtConfig.secret);
     }
 

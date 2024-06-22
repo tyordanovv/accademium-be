@@ -5,7 +5,7 @@ import validateSchema from './middleware/validateSchema.js'
 import Joi from 'joi';
 
 class UserController {
-    constructor({ userService }) {
+    constructor({ userService, authMiddleware }) {
         this.router = express.Router();
         this.userService = userService;
       
@@ -13,13 +13,8 @@ class UserController {
                 .get("/test", asyncHandler(this.test.bind(this)))
                 .post("/register", validateSchema(StudentRegistrationRequest), asyncHandler(this.registerStudent.bind(this)))
                 .post("/login", validateSchema(LoginRequest), asyncHandler(this.login.bind(this)))
-                .post("/verify", validateSchema(ValidationRequest),asyncHandler(this.verify.bind(this)));
-        // this.router.post(
-        //     "/createB2BAdmin",
-        //     authMiddleware.verifyToken,
-        //     authMiddleware.authorize('PlatformAdmin'),
-        //     asyncHandler(this.createB2BAdmin.bind(this))
-        // );
+                .post("/verify", validateSchema(ValidationRequest),asyncHandler(this.verify.bind(this)))
+                .post("/createB2BAdmin", authMiddleware.verifyToken, authMiddleware.authorize('PlatformAdmin'), asyncHandler(this.createB2BAdmin.bind(this)));
         // this.router.post(
         //     "/createB2BModerator",
         //     authMiddleware.verifyToken,
@@ -61,11 +56,13 @@ class UserController {
         res.status(StatusCodes.OK).send("User verified successfully.");
     }
 
-    // async createB2BAdmin(req, res) {
-    //     const { email, organisationId } = req.body;
-    //     const tempPassword = await this.userService.createB2BUser(email, organisationId, 'uniAdmin');
-    //     res.status(StatusCodes.OK).send(`B2B Admin created successfully with temporary password: ${tempPassword}`);
-    // }
+    async createB2BAdmin(req, res) {
+        const { email, organisationId } = req.body;
+        console.log(organisationId)
+        return
+        const tempPassword = await this.userService.createB2BUser(email, organisationId, 'uniAdmin');
+        res.status(StatusCodes.OK).send(`B2B Admin created successfully with temporary password: ${tempPassword}`);
+    }
 
     // async createB2BModerator(req, res) {
     //     const { email, organisationId } = req.body;

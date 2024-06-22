@@ -5,7 +5,7 @@ class UserService {
     }
 
     async registerUser(username, password, email, organisationId) {
-        await this.cognitoService.adminCreateUser(username, password, email, organisationId);
+        await this.cognitoService.createStudent(username, password, email, organisationId);
         await this.cognitoService.adminAddUserToGroup('StudentGroup', email)
     }
 
@@ -44,6 +44,8 @@ class UserService {
             groups: decoded['cognito:groups'],
             organisationId: decoded['custom:organisationId'],
         });
+
+        console.log(token);
 
         return token;
     }
