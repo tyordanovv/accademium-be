@@ -31,6 +31,5 @@ export const awsConfig = {
   region: process.env.COGNITO_REGION,
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  clientSecret: process.env.COGNITO_CLIENT_SECRET,
 };
-
-console.log("ENV 2", process.env.COGNITO_REGION)

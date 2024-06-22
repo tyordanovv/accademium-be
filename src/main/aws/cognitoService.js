@@ -5,28 +5,28 @@ import {
     AdminSetUserPasswordCommand,
     AdminAddUserToGroupCommand,
     AdminGetUserCommand,
-    AdminDeleteUserCommand
+    AdminDeleteUserCommand,
+    SignUpCommand,
+    InitiateAuthCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 
 class CognitoService {
     constructor() {}
 
-    async adminCreateUser(username, password, email, organisationId) {
-        console.log("username: ", username)
-        console.log("password: ", password)
-        console.log("email: ", email)
-        console.log("organisationId: ", organisationId)
+    async createStudent(username, password, email, organisationId) {
+        const clientId = awsConfig.clientId;
+        
         const params = {
-            UserPoolId: awsConfig.userPoolId,
+            ClientId: clientId,
             Username: username,
+            Password: password,
             UserAttributes: [
                 { Name: 'email', Value: email },
                 { Name: 'custom:organisationId', Value: organisationId },
-            ],
-            TemporaryPassword: password,
+            ]
         };
         
-        const command = new AdminCreateUserCommand(params);
+        const command = new SignUpCommand(params);
         return await Cognito.send(command);
     }
 
@@ -42,10 +42,20 @@ class CognitoService {
         return await Cognito.send(command);
     }
 
-    adminInitiateAuth(params) {
-        //TODO create params here
-        Cognito.adminInitiateAuth(params).promise();
-        return
+    async initiateAuthCommand(email, password) {
+        const params = {
+            AuthFlow: 'USER_PASSWORD_AUTH',
+            ClientId: awsConfig.clientId,
+            AuthParameters: {
+                USERNAME: email,
+                PASSWORD: password
+            }
+        };
+        const command = new InitiateAuthCommand(params);
+        const authResponse = await Cognito.send(command);
+        
+        console.log(authResponse.AuthenticationResult);
+        return authResponse.AuthenticationResult;
     }
 
     confirmSignUp(params) {
@@ -66,5 +76,4 @@ class CognitoService {
         return
     }
 }
-
 export default CognitoService;

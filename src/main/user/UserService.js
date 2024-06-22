@@ -31,29 +31,21 @@ class UserService {
         // return tempPassword;
     }
 
-    async loginUser(username, password) {
-        // const params = {
-        //     AuthFlow: 'ADMIN_NO_SRP_AUTH',
-        //     UserPoolId: this.cognitoConfig.userPoolId,
-        //     ClientId: this.cognitoConfig.clientId,
-        //     AuthParameters: {
-        //         USERNAME: username,
-        //         PASSWORD: password,
-        //     },
-        // };
+    async loginUser(email, password) {
+        const response = await this.cognitoService.initiateAuthCommand(email, password);
+        const idToken = response.IdToken;
+        const decoded = this.jwtService.decode(idToken);
 
-        // const response = await this.cognito.adminInitiateAuth(params);
-        // const idToken = response.AuthenticationResult.IdToken;
-        // const decoded = this.jwtService.decode(idToken);
+        console.log(decoded)
 
-        // const token = this.jwtService.sign({
-        //     username: decoded['cognito:username'],
-        //     email: decoded.email,
-        //     groups: decoded['cognito:groups'],
-        //     organisationId: decoded['custom:organisationId'],
-        // });
+        const token = this.jwtService.sign({
+            username: decoded['cognito:username'],
+            email: decoded.email,
+            groups: decoded['cognito:groups'],
+            organisationId: decoded['custom:organisationId'],
+        });
 
-        // return token;
+        return token;
     }
 
     async verifyUser(username, code) {

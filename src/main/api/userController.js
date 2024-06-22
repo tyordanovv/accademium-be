@@ -18,10 +18,10 @@ class UserController {
             validateSchema(StudentRegistrationRequest),
             asyncHandler(this.registerStudent.bind(this))
         );
-        // this.router.post(
-        //     "/login",
-        //     asyncHandler(this.login.bind(this))
-        // );
+        this.router.post(
+            "/login",
+            asyncHandler(this.login.bind(this))
+        );
         // this.router.post(
         //     "/verify",
         //     asyncHandler(this.verify.bind(this))
@@ -61,11 +61,11 @@ class UserController {
         res.status(StatusCodes.OK).send("Student registered successfully. Please check your email for verification.");
     }
 
-    // async login(req, res) {
-    //     const { email, password } = req.body;
-    //     const token = await this.userService.loginUser(email, password);
-    //     res.status(StatusCodes.OK).json({ token });
-    // }
+    async login(req, res) {
+        const { email, password } = req.body;
+        const token = await this.userService.loginUser(email, password);
+        res.status(StatusCodes.OK).json({ token });
+    }
 
     // async verify(req, res) {
     //     const { email, code } = req.body;
