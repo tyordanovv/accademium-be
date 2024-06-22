@@ -24,3 +24,13 @@ export const openaiConfig = {
   openai_url: process.env.VITE_OPENAI_API_URL, 
   openai_key: process.env.VITE_OPENAI_API_KEY,
 };
+
+export const awsConfig = {
+  userPoolId: process.env.COGNITO_USER_POOL_ID,
+  clientId: process.env.COGNITO_CLIENT_ID,
+  region: process.env.COGNITO_REGION,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+};
+
+console.log("ENV 2", process.env.COGNITO_REGION)

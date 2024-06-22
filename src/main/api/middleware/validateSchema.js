@@ -1,5 +1,4 @@
 import { StatusCodes } from 'http-status-codes';
-import Joi from 'joi';
 
 class ValidationException extends Error {
   constructor(message) {

@@ -6,7 +6,11 @@ import exceptionHandling from "./api/middleware/exceptionHandler.js";
 import container from "./config/container.js";
 
 async function createApp() {
+  console.log("createApp 1", process.env.COGNITO_REGION)
+
   const app = express();
+
+  console.log("createApp 2", process.env.COGNITO_REGION)
 
   // Middleware
   app.use(bodyParser.json());
