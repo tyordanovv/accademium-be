@@ -4,7 +4,6 @@ class AuthMiddleware {
     }
 
     verifyToken = async (req, res, next) => {
-        console.log(req.headers.authorization)
         const authHeader = req.headers.authorization
         if (!authHeader) {
             return res.status(401).json({ message: "Unauthorized: No token provided" });
@@ -17,7 +16,6 @@ class AuthMiddleware {
         try {
             const decoded = this.jwtService.verify(token);
             req.user = decoded; 
-            console.log("decoded:", decoded)
             next();
         } catch (error) {
             return res.status(401).json({ message: "Unauthorized: Invalid token" });
@@ -25,7 +23,7 @@ class AuthMiddleware {
     };
 
     authorize = (role) => (req, res, next) => {
-        const { groups } = req.user; 
+        const { groups } = req.user;
 
         if (!groups || !groups.includes(role)) {
             return res.status(403).send("Access Denied");

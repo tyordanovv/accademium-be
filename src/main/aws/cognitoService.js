@@ -4,7 +4,11 @@ import {
     AdminAddUserToGroupCommand,
     ConfirmSignUpCommand,
     SignUpCommand,
-    InitiateAuthCommand
+    InitiateAuthCommand,
+    AdminCreateUserCommand,
+    AdminRespondToAuthChallengeCommand, 
+    AdminGetUserCommand, 
+    AdminDeleteUserCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 
 class CognitoService {
@@ -24,6 +28,22 @@ class CognitoService {
         };
         
         const command = new SignUpCommand(params);
+        return await Cognito.send(command);
+    }
+
+    async adminCreateUser(username, tempPassword, email, organisationId) {
+        console.log("email", email)
+        const params = {
+            UserPoolId: awsConfig.userPoolId,
+            Username: username,
+            UserAttributes: [
+                { Name: 'email', Value: email },
+                { Name: 'custom:organisationId', Value: organisationId },
+            ],
+            TemporaryPassword: tempPassword,
+        };
+
+        const command = new AdminCreateUserCommand(params);
         return await Cognito.send(command);
     }
 
@@ -50,9 +70,8 @@ class CognitoService {
         };
         const command = new InitiateAuthCommand(params);
         const authResponse = await Cognito.send(command);
-        
-        console.log(authResponse.AuthenticationResult);
-        return authResponse.AuthenticationResult;
+        console.log("authResponse: ", authResponse)
+        return authResponse;
     }
 
     async confirmSignUp(username, code) {
@@ -67,16 +86,49 @@ class CognitoService {
         return await Cognito.send(command);
     }
 
-    adminGetUser(params) {
-        //TODO create params here
-        Cognito.adminGetUser(params).promise();
-        return
+    async adminGetUser(email) {
+        const params = {
+            UserPoolId: awsConfig.userPoolId,
+            Username: email,
+        };
+
+        const command = new AdminGetUserCommand(params);
+        return await Cognito.send(command);
     }
 
-    adminDeleteUser(params) {
-        //TODO create params here
-        Cognito.adminDeleteUser(params).promise();
-        return
+    async adminDeleteUser(email) {
+        const params = {
+            UserPoolId: awsConfig.userPoolId,
+            Username: email,
+        };
+
+        const command = new AdminDeleteUserCommand(params);
+        return await Cognito.send(command);
+    }
+
+    async respondToNewPasswordChallenge(email, session, newPassword) {
+        const params = {
+            ChallengeName: 'NEW_PASSWORD_REQUIRED',
+            ClientId: awsConfig.clientId,
+            UserPoolId: awsConfig.userPoolId,
+            Session: session,
+            ChallengeResponses: {
+                USERNAME: email,
+                NEW_PASSWORD: newPassword,
+            },
+        };
+        const command = new AdminRespondToAuthChallengeCommand(params);
+        return await Cognito.send(command);
+    }
+
+    async changePassword(cognitoAccessToken, currentPassword, newPassword) {
+        const params = {
+            AccessToken: cognitoAccessToken, // TODO how to handle this token?
+            PreviousPassword: currentPassword,
+            ProposedPassword: newPassword,
+        };
+        const command = new ChangePasswordCommand(params);
+        return await Cognito.send(command);
     }
 }
 export default CognitoService;

@@ -1,76 +1,72 @@
+import { generateRandomPassword } from "../utils/password/randomPasswordGenerator.js";
+
 class UserService {
     constructor({ cognitoService, jwtService }) {
         this.cognitoService = cognitoService;
         this.jwtService = jwtService;
     }
 
-    async registerUser(username, password, email, organisationId) {
+    async registerUser( username, password, email, organisationId ) {
         await this.cognitoService.createStudent(username, password, email, organisationId);
         await this.cognitoService.adminAddUserToGroup('StudentGroup', email)
     }
 
-    async createB2BUser(username, email, organisationId, role) {
-        // const tempPassword = Math.random().toString(36).slice(-8);
-        // const params = {
-        //     UserPoolId: this.cognitoConfig.userPoolId,
-        //     Username: username,
-        //     UserAttributes: [
-        //         { Name: 'email', Value: email },
-        //         { Name: 'custom:organisationId', Value: organisationId },
-        //     ],
-        //     TemporaryPassword: tempPassword,
-        // };
+    async createB2BUser( username, email, organisationId, role ) {
+        const tempPassword = generateRandomPassword();
 
-        // await this.cognito.adminCreateUser(params);
-        // await this.cognito.adminAddUserToGroup({
-        //     UserPoolId: this.cognitoConfig.userPoolId,
-        //     GroupName: role,
-        //     Username: username,
-        // });
+        await this.cognitoService.adminCreateUser(username, tempPassword, email, organisationId);
+        await this.cognitoService.adminAddUserToGroup(role, email)
 
-        // return tempPassword;
+        return tempPassword;
     }
 
     async loginUser(email, password) {
         const response = await this.cognitoService.initiateAuthCommand(email, password);
-        const idToken = response.IdToken;
-        const decoded = this.jwtService.decode(idToken);
-
-        console.log(decoded)
-
+    
+        if (!response.AuthenticationResult) {
+            const challengeName = response.ChallengeName;
+    
+            if (challengeName === 'NEW_PASSWORD_REQUIRED') {
+                return response;
+            } else {
+                throw new Error('Authentication failed. Challenge not supported.');
+            }
+        }
+    
+        const { IdToken } = response.AuthenticationResult;
+        const decoded = this.jwtService.decode(IdToken);
+    
         const token = this.jwtService.sign({
             username: decoded['cognito:username'],
             email: decoded.email,
             groups: decoded['cognito:groups'],
             organisationId: decoded['custom:organisationId'],
         });
-
-        console.log(token);
-
+    
         return token;
     }
+    
 
     async verifyUser(username, code) {
         await this.cognitoService.confirmSignUp(username, code);
     }
 
-    async getUserProfile(username) {
-        // const params = {
-        //     UserPoolId: this.cognitoConfig.userPoolId,
-        //     Username: username,
-        // };
-
-        // const user = await this.cognito.adminGetUser(params);
-        // return user;
+    async getUserProfile(email) {
+        const response = await this.cognitoService.adminGetUser(email);
+        const { UserAttributes, UserCreateDate } = response;
+        return { UserAttributes, UserCreateDate };
     }
 
-    async deleteUserProfile(username) {
-        // const params = {
-        //     UserPoolId: this.cognitoConfig.userPoolId,
-        //     Username: username,
-        // };
+    async deleteUserProfile(email) {
+        await this.cognitoService.adminDeleteUser(email);
+    }
 
-        // await this.cognito.adminDeleteUser(params);
+    async changePassword(user, currentPassword, newPassword) {
+        await this.cognitoService.changePassword(user, currentPassword, newPassword);
+    }
+
+    async changeInitialPassword(email, session, newPassword) {
+        await this.cognitoService.respondToNewPasswordChallenge(email, session, newPassword);
     }
 }
 

@@ -14,24 +14,12 @@ class UserController {
                 .post("/register", validateSchema(StudentRegistrationRequest), asyncHandler(this.registerStudent.bind(this)))
                 .post("/login", validateSchema(LoginRequest), asyncHandler(this.login.bind(this)))
                 .post("/verify", validateSchema(ValidationRequest),asyncHandler(this.verify.bind(this)))
-                .post("/createB2BAdmin", authMiddleware.verifyToken, authMiddleware.authorize('PlatformAdmin'), asyncHandler(this.createB2BAdmin.bind(this)));
-        // this.router.post(
-        //     "/createB2BModerator",
-        //     authMiddleware.verifyToken,
-        //     authMiddleware.authorize('uniAdmin'),
-        //     asyncHandler(this.createB2BModerator.bind(this))
-        // );
-        // this.router.get(
-        //     "/profile",
-        //     authMiddleware.verifyToken,
-        //     asyncHandler(this.profile.bind(this))
-        // );
-        // this.router.delete(
-        //     "/:email",
-        //     authMiddleware.verifyToken,
-        //     authMiddleware.authorize('PlatformAdmin'),
-        //     asyncHandler(this.deleteUser.bind(this))
-        // );
+                .post("/createB2BAdmin", authMiddleware.verifyToken, authMiddleware.authorize('PlatformAdminGroup'), asyncHandler(this.createB2BAdmin.bind(this)))
+                .post("/createB2BModerator", authMiddleware.verifyToken, authMiddleware.authorize('B2BAdminGroup'), asyncHandler(this.createB2BModerator.bind(this)))
+                .post("/pass/change", authMiddleware.verifyToken, asyncHandler(this.changePassword.bind(this)))
+                .post("/pass/change/init", asyncHandler(this.changeInitialPassword.bind(this)))
+                .get("/", authMiddleware.verifyToken, asyncHandler(this.profile.bind(this)))
+                .delete("/", authMiddleware.verifyToken, asyncHandler(this.deleteUser.bind(this)));
     }
 
     test = async (req, res) => {
@@ -46,8 +34,8 @@ class UserController {
 
     async login(req, res) {
         const { email, password } = req.body;
-        const token = await this.userService.loginUser(email, password);
-        res.status(StatusCodes.OK).json({ token });
+        const response = await this.userService.loginUser(email, password);
+        res.status(StatusCodes.OK).json({ response });
     }
 
     async verify(req, res) {
@@ -58,29 +46,51 @@ class UserController {
 
     async createB2BAdmin(req, res) {
         const { email, organisationId } = req.body;
-        console.log(organisationId)
-        return
-        const tempPassword = await this.userService.createB2BUser(email, organisationId, 'uniAdmin');
+        const tempPassword = await this.userService.createB2BUser(email, email, organisationId, 'B2BAdminGroup');
         res.status(StatusCodes.OK).send(`B2B Admin created successfully with temporary password: ${tempPassword}`);
     }
 
-    // async createB2BModerator(req, res) {
-    //     const { email, organisationId } = req.body;
-    //     const tempPassword = await this.userService.createB2BUser(email, organisationId, 'Moderator');
-    //     res.status(StatusCodes.OK).send(`B2B Moderator created successfully with temporary password: ${tempPassword}`);
-    // }
+    async createB2BModerator(req, res) {
+        const { email, organisationId } = req.body;
+        const tempPassword = await this.userService.createB2BUser(email, email, organisationId, 'B2BModeratorGroup');
+        res.status(StatusCodes.OK).send(`B2B Moderator created successfully with temporary password: ${tempPassword}`);
+    }
 
-    // async profile(req, res) {
-    //     const email = req.user.email;
-    //     const user = await this.userService.getUserProfile(email);
-    //     res.status(StatusCodes.OK).json(user);
-    // }
+    async profile(req, res) {
+        const email = req.user.email;
+        const user = await this.userService.getUserProfile(email);
+        res.status(StatusCodes.OK).json(user);
+    }
 
-    // async deleteUser(req, res) {
-    //     const { email } = req.params;
-    //     await this.userService.deleteUserProfile(email);
-    //     res.status(StatusCodes.OK).send("User deleted successfully.");
-    // }
+    async deleteUser(req, res) {
+        const email = req.user.email;
+        await this.userService.deleteUserProfile(email);
+        res.status(StatusCodes.OK).send("User deleted successfully.");
+    }
+
+    async changePassword(req, res) {
+        const { user, currentPassword, newPassword } = req.body;
+
+        try {
+            this.userService.changePassword(user, currentPassword, newPassword);
+            return res.status(200).json({ message: 'Password changed successfully.' });
+        } catch (error) {
+            console.error('Error changing password:', error);
+            return res.status(500).json({ message: 'Error changing password.' });
+        }
+    }
+
+    async changeInitialPassword(req, res) {
+        const { user, session, password } = req.body;
+
+        try {
+            this.userService.changeInitialPassword(user.email, session, password);
+            return res.status(200).json({ message: 'Password changed successfully.' });
+        } catch (error) {
+            console.error('Error changing password:', error);
+            return res.status(500).json({ message: 'Error changing password.' });
+        }
+    }
 }
 export default UserController;
   
